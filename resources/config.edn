@@ -1,0 +1,4 @@
+{:spirit-island/metadata {:filename "resources/metadata.edn"}
+ :spirit-island/users    {:filename "resources/users.edn"}
+ :spirit-island/cli      {:metadata #ig/ref :spirit-island/metadata
+                          :users    #ig/ref :spirit-island/users}}

@@ -1,0 +1,58 @@
+{:spirits     {
+               ; Base game
+               :lightning       {:name "Lightning's Swift Strike", :difficulty :low}
+               :vital-strength  {:name "Vital Strength of the Earth", :difficulty :low}
+               :river           {:name "River Surges in Sunlight", :difficulty :low}
+               :shadows         {:name "Shadows Flicker Like Flame", :difficulty :low}
+               :thunderspeaker  {:name "Thunderspeaker", :difficulty :moderate}
+               :green           {:name "A Spread of Rampant Green", :difficulty :moderate}
+               :ocean           {:name "Ocean's Hungry Grasp", :difficulty :high}
+               :bringer         {:name "Bringer of Dreams and Nightmares", :difficulty :high}
+
+               ;Branch and Claw
+               :keeper          {:name "Keeper of the Forbidden Wilds", :difficulty :moderate}
+               :fangs           {:name "Sharp Fangs Behind the Leaves", :difficulty :moderate}
+
+               ; Feather and Flame
+               :wildfire        {:name "Heart of the Wildfire", :difficulty :high}
+               :serpent         {:name "Serpent Slumbering Beneath the Island", :difficulty :high}
+               :downpour        {:name "Downpour Drenches the World", :difficulty :high}
+               :finder          {:name "Finder of Paths Unseen", :difficulty :very-high}
+
+               ; Jagged Earth
+               :vengeance       {:name "Vengeance as a Burning Plague", :difficulty :high}
+               :fractured       {:name "Fractured Days Split the Sky", :difficulty :very-high}
+               :many-minds      {:name "Many Minds Move as One", :difficulty :moderate}
+               :starlight       {:name "Starlight Seeks its Form", :difficulty :very-high}
+               :shroud          {:name "Shroud of Silent Mist", :difficulty :high}
+               :lure            {:name "Lure of the Deep Wilderness", :difficulty :moderate}
+               :shifting        {:name "Shifting Memory of Ages", :difficulty :moderate}
+               :volcano         {:name "Volcano Looming High", :difficulty :moderate}
+               :stone           {:name "Stone's Unyielding Defiance", :difficulty :moderate}
+               :trickster       {:name "Grinning Trickster Stirs Up Trouble", :difficulty :moderate}
+
+               ; Horizons
+               :teeth           {:name "Devouring Teeth Lurk Underfoot", :difficulty :low}
+               :eyes            {:name "Eyes Watch from the Trees", :difficulty :low}
+               :mud             {:name "Fathomless Mud of the Swamp", :difficulty :low}
+               :rising-heat     {:name "Rising Heat of Stone and Sand", :difficulty :low}
+               :sun-bright      {:name "Sun-Bright Whirlwind", :difficulty :low}
+
+               ; Nature's Incarnate
+               :behemoth        {:name "Ember-Eyed Behemoth", :difficulty :moderate}
+               :hearth-vigil    {:name "Hearth Vigil", :difficulty :moderate}
+               :roots           {:name "Towering Roots of the Jungle", :difficulty :moderate}
+               :breath          {:name "Breath of Darkness Down Your Spine", :difficulty :high}
+               :gaze            {:name "Relentless Gaze of the Sun", :difficulty :high}
+               :wandering-voice {:name "Wandering Voice Keens Delirium", :difficulty :high}
+               :wounded-waters  {:name "Wounded Waters Bleeding", :difficulty :high}
+               :dances          {:name "Dances Up Earthquakes", :difficulty :very-high}},
+ :boards      [:a :b :c :d :e :f],
+ :adversaries {:brandenburg {:name "Brandenburg-Prussia"}
+               :england     {:name "England"}
+               :sweden      {:name "Sweden"}
+               :france      {:name "France"}
+               :habsburg    {:name "Habsburg Monarchy"}
+               :russia      {:name "Russia"}
+               :scotland    {:name "Scotland"}
+               :hme         {:name "Habsburg Mining Expedition"}}}
