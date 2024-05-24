@@ -1,5 +1,6 @@
 (ns spirit_island.metadata
   (:require [clojure.edn :as edn]
+            [spirit_island.core :refer [in?]]
             [integrant.core :as ig]))
 
 (defn parse-metadata
@@ -27,9 +28,9 @@
   (parse-metadata filename))
 
 (defn difficulty-for-string [s]
-  ({"low"     :low, "easy" :low,
-    "moderate" :moderate, "medium" :moderate
-    "high" :high, "hard" :high
+  ({"low"       :low, "easy" :low,
+    "moderate"  :moderate, "medium" :moderate
+    "high"      :high, "hard" :high
     "very-high" :very-high, "vhigh" :very-high, "very-hard" :very-high, "vhard" :very-high} s))
 
 (defn adversary? [metadata s]
@@ -37,3 +38,6 @@
 
 (defn spirit? [metadata s]
   (contains? (-> metadata :spirits keys set) (keyword s)))
+
+(defn board? [metadata s]
+  (in? (:boards metadata) (keyword s)))

@@ -1,10 +1,10 @@
 (ns spirit-island.cli
   (:require [clojure.string :as str]
             [integrant.core :as ig]
-            [spirit_island.core :as core :refer [only-when parse-long-within-range]]
+            [spirit_island.core :refer [only-when parse-long-within-range]]
+            [spirit-island.game :as g]
             [spirit_island.metadata :as m]
             [spirit-island.users :as u]))
-
 
 (defn- state-metadata [state] (:metadata state))
 (defn- state-users [state] (:users state))
@@ -43,7 +43,7 @@
         players (str/split (or players-str "") #";")]
     (if (not (u/valid? (state-users state) players))
       (println "Invalid players:" players)
-      (print-game (core/random-game (state-metadata state) players)))
+      (print-game (g/random-game (state-metadata state) players)))
     state))
 
 (defn parse-record-game [state input]
@@ -61,11 +61,14 @@
                                     (str/split input-str #";"))))
           (parse-players [input-str]
             (when input-str
-              (reduce (fn [acc s] (if-some [[_ player spirit rating] (re-matches #"(\w+)=([\w-]+),(\d+)" s)]
+              (reduce (fn [acc s] (if-some [[_ player spirit board rating] (re-matches #"(\w+)=([\w-]+),(\w),(\d+)" s)]
                                     (if (and (u/valid? (state-users state) [player])
                                              (m/spirit? (state-metadata state) spirit)
+                                             (m/board? (state-metadata state) board)
                                              (parse-long-within-range rating 1 5))
-                                      (assoc acc player {:spirit (keyword spirit) :rating (parse-long rating)})
+                                      (assoc acc player {:spirit (keyword spirit)
+                                                         :board (keyword board)
+                                                         :rating (parse-long rating)})
                                       (reduced nil))
                                     (reduced nil)))
                       {}
