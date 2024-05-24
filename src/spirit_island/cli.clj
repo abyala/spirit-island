@@ -61,7 +61,7 @@
                                     (str/split input-str #";"))))
           (parse-players [input-str]
             (when input-str
-              (reduce (fn [acc s] (if-some [[_ player spirit rating] (re-matches #"(\w+)=(\w+),(\d+)" s)]
+              (reduce (fn [acc s] (if-some [[_ player spirit rating] (re-matches #"(\w+)=([\w-]+),(\d+)" s)]
                                     (if (and (u/valid? (state-users state) [player])
                                              (m/spirit? (state-metadata state) spirit)
                                              (parse-long-within-range rating 1 5))
