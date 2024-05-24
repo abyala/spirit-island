@@ -62,7 +62,7 @@
           (parse-players [input-str]
             (when input-str
               (reduce (fn [acc s] (if-some [[_ player spirit board rating] (re-matches #"(\w+)=([\w-]+),(\w),(\d+)" s)]
-                                    (if (and (u/valid? (state-users state) [player])
+                                    (if (and (u/valid? (state-users state) player)
                                              (m/spirit? (state-metadata state) spirit)
                                              (m/board? (state-metadata state) board)
                                              (parse-long-within-range rating 1 5))

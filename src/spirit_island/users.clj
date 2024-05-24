@@ -19,11 +19,12 @@
 (defn all-users [users]
   (-> users :players keys sort))
 
-; TODO: Support both a name and a sequence of names
 (defn valid? [users names]
-  (let [u (set (all-users users))]
-    (and (apply distinct? names)
-         (every? u names))))
+  (if (string? names) (recur users [names])
+                      (when (seq names)
+                        (let [u (set (all-users users))]
+                          (and (apply distinct? names)
+                               (every? u names))))))
 
 (defn all-games [users]
   (-> users :games))
