@@ -9,10 +9,18 @@
 (defn- state-metadata [state] (:metadata state))
 (defn- state-users [state] (:users state))
 
+(def #^{:private true} create-game-usage
+  "create-game [Player;...]")
+(def #^{:private true} record-game-usage
+  "record-game [win|loss] [num-turns] [none|adversary=level] [Player=spirit,board,rating;...]")
+(defn invalid-format-message [message]
+  (println "Invalid format:" message))
+
 (defmulti execute (fn [_ line] (-> line (str/split #" ") first)))
 
 (defmethod execute :default [state _]
-  (println "Unrecognized command. Use one of the following:\n * spirits\n * users\n * create-game\n * record-game\n * exit")
+  (println "Unrecognized command. Use one of the following:")
+  (println (str/join "\n" (map #(str " * " %) ["spirits" "users" create-game-usage record-game-usage])))
   state)
 
 (defmethod execute "exit" [_ _])
@@ -42,7 +50,7 @@
   (let [[_ players-str] (str/split input #" ")
         players (str/split (or players-str "") #";")]
     (if (not (u/valid? (state-users state) players))
-      (println "Invalid players:" players)
+      (invalid-format-message create-game-usage)
       (print-game (g/random-game (state-metadata state) players)))
     state))
 
@@ -86,7 +94,7 @@
           users' (u/add-game (state-users state) win? turns adversaries players)]
       (println "Recorded and saved")
       (assoc state :users users'))
-    (do (println "Invalid game structure.  Format: [win|loss] [num-turns] [adversary=rating] [Player=spirit,rating;...]")
+    (do (invalid-format-message record-game-usage)
         state)))
 
 (defn run-cli
