@@ -11,3 +11,9 @@
     (only-when #(<= low % high) (parse-long s))))
 
 (defn in? [coll v] (some #(= v %) coll))
+
+(defn map-values [f m]
+  (reduce-kv #(assoc %1 %2 (f %3)) {} m))
+
+(defn first-some? [coll]
+  (first (filter some? coll)))

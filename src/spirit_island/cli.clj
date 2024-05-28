@@ -1,7 +1,8 @@
 (ns spirit-island.cli
   (:require [clojure.string :as str]
+            [clojure.pprint :refer [pprint]]
             [integrant.core :as ig]
-            [spirit_island.core :refer [only-when parse-long-within-range]]
+            [spirit_island.core :refer [only-when parse-long-within-range first-some?]]
             [spirit-island.game :as g]
             [spirit_island.metadata :as m]
             [spirit-island.users :as u]))
@@ -13,6 +14,8 @@
   "create-game [Player;...]")
 (def #^{:private true} record-game-usage
   "record-game [win|loss] [num-turns] [none|adversary=level] [Player=spirit,board,rating;...]")
+(def #^{:private true} stats-usage
+  "stats [adversary|player]")
 (defn invalid-format-message [message]
   (println "Invalid format:" message))
 
@@ -75,7 +78,7 @@
                                              (m/board? (state-metadata state) board)
                                              (parse-long-within-range rating 1 5))
                                       (assoc acc player {:spirit (keyword spirit)
-                                                         :board (keyword board)
+                                                         :board  (keyword board)
                                                          :rating (parse-long rating)})
                                       (reduced nil))
                                     (reduced nil)))
@@ -96,6 +99,34 @@
       (assoc state :users users'))
     (do (invalid-format-message record-game-usage)
         state)))
+
+(defn parse-stat-filters [state input]
+  (if (<= (count input) 6)
+    ()
+    (let [metadata (state-metadata state)
+          users (state-users state)]
+      (letfn [(parsed-adversary [s] (when (m/adversary? metadata s)
+                                      #(g/against-adversary? % (keyword s))))
+              (parsed-user [s] (when (u/valid? users s)
+                                 #(g/with-player? % s)))
+              (parsed-user-spirit [s] (when-some [[_ player spirit] (re-matches #"(\w+)=([\w-]+)" s)]
+                                        (when (and (u/valid? users player) (m/spirit? metadata spirit))
+                                          #(g/with-player-and-spirit? % player (keyword spirit)))))]
+        (->> (str/split (subs input 6) #";")
+             (map #(first-some? ((juxt parsed-adversary parsed-user parsed-user-spirit) %)))
+             (only-when #(not-any? nil? %)))))))
+
+(defn filtered-stats [state input]
+  (if-some [filters (parse-stat-filters state input)]
+    (g/game-stats (reduce #(filter %2 %1) (u/all-games (state-users state)) filters))
+    :invalid))
+
+(defmethod execute "stats" [state input]
+  (let [stats (filtered-stats state input)]
+    (condp = stats :invalid (invalid-format-message stats-usage)
+                   nil (println "No matching games found")
+                   (pprint stats)))
+  state)
 
 (defn run-cli
   ([] (run-cli (spirit_island.metadata/parse-metadata) (spirit-island.users/parse-users)))

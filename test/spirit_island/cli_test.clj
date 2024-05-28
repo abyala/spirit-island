@@ -10,7 +10,21 @@
                                           :france  {:name "France"}}}
                  :users    {:players {"Andrew" {}
                                       "Marc"   {}}
-                            :games   []}})
+                            :games   [{:timestamp   #inst "2024-05-12T00:30:00.000-00:00",
+                                       :outcome     :win,
+                                       :num-turns   7,
+                                       :adversaries {:england 3},
+                                       :players     {"Andrew" {:spirit :fangs, :rating 4}}}
+                                      {:timestamp   #inst "2024-05-12T01:30:00.000-00:00",
+                                       :outcome     :loss,
+                                       :num-turns   8,
+                                       :adversaries {:england 4},
+                                       :players     {"Andrew" {:spirit :river, :rating 2}}}
+                                      {:timestamp   #inst "2024-05-12T02:30:00.000-00:00",
+                                       :outcome     :win,
+                                       :num-turns   9,
+                                       :adversaries {:france 2},
+                                       :players     {"Andrew" {:spirit :fangs, :rating 4}}}]}})
 
 (deftest parse-record-game-test
   (testing "Invalid inputs"
@@ -48,4 +62,29 @@
                      :players {"Andrew" {:spirit :many-minds, :board :d, :rating 4}}}
                     "record-game win 4 none Andrew=many-minds,d,4"))
 
+(deftest parse-stat-filters-test
+  (are [input] (nil? (cli/parse-stat-filters test-state input))
+               "stats blah"
+               "stats england;blah"
+               "stats blah;Andrew"
+               "stats Andrew=blah"
+               "stats Andrew;england;Marc=blah")
+  (are [n input] [= n (count (cli/parse-stat-filters test-state input))]
+                 0 "stats"
+                 0 "stats "
+                 0 "stats   "
+                 1 "stats england"
+                 1 "stats Andrew"
+                 1 "stats Andrew=river"
+                 2 "stats england;Andrew"
+                 2 "stats Andrew=river;Marc=many-minds"
+                 3 "stats Andrew=river;Marc=many-minds;england"))
 
+(deftest filtered-stats-test
+  (are [expected input] (= expected (cli/filtered-stats test-state input))
+                        {:num 3 :win-rate 67} "stats"
+                        {:num 3 :win-rate 67} "stats Andrew"
+                        {:num 2 :win-rate 50} "stats england"
+                        {:num 2 :win-rate 100} "stats Andrew=fangs"
+                        {:num 2 :win-rate 50} "stats england;Andrew"
+                        {:num 1 :win-rate 100} "stats england;Andrew=fangs"))
