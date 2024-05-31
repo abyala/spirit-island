@@ -116,16 +116,31 @@
              (map #(first-some? ((juxt parsed-adversary parsed-user parsed-user-spirit) %)))
              (only-when #(not-any? nil? %)))))))
 
-(defn filtered-stats [state input]
+(defn filtered-games [state input]
   (if-some [filters (parse-stat-filters state input)]
-    (g/game-stats (reduce #(filter %2 %1) (u/all-games (state-users state)) filters))
+    (reduce #(filter %2 %1) (u/all-games (state-users state)) filters)
     :invalid))
 
+(defn print-stats [stats]
+  (letfn [(format-stats [{:keys [num win-rate]}] (str num " game" (if (= num 1) "" "s") " with a win rate of " win-rate "%"))]
+    (cond (map? stats) (println (format-stats stats))
+          (map? (-> stats first second)) (doseq [[id s] stats] (println (str "For " (str id) ", " (format-stats s))))
+          :else (assert "Unknown datatype for stats:" (type stats)))))
+
+(defn show-all-stats [games]
+  (if (seq games)
+    (do (println "Summary details:")
+        (print-stats (g/game-stats games))
+        (println)
+        (println "Stats by adversary:")
+        (print-stats (g/stats-by-adversary games)))
+    (println "No matching games found")))
+
 (defmethod execute "stats" [state input]
-  (let [stats (filtered-stats state input)]
-    (condp = stats :invalid (invalid-format-message stats-usage)
-                   nil (println "No matching games found")
-                   (pprint stats)))
+  (let [games (filtered-games state input)]
+    (if (= games :invalid)
+      (invalid-format-message stats-usage)
+      (show-all-stats games)))
   state)
 
 (defn run-cli
