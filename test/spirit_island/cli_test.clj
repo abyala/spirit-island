@@ -2,6 +2,21 @@
   (:require [clojure.test :refer :all]
             [spirit-island.cli :as cli]))
 
+(def game1 {:timestamp   #inst "2024-05-12T00:30:00.000-00:00",
+            :outcome     :win,
+            :num-turns   7,
+            :adversaries {:england 3},
+            :players     {"Andrew" {:spirit :fangs, :rating 4}}})
+(def game2 {:timestamp   #inst "2024-05-12T01:30:00.000-00:00",
+            :outcome     :loss,
+            :num-turns   8,
+            :adversaries {:england 4},
+            :players     {"Andrew" {:spirit :river, :rating 2}}})
+(def game3 {:timestamp   #inst "2024-05-12T02:30:00.000-00:00",
+            :outcome     :win,
+            :num-turns   9,
+            :adversaries {:france 2},
+            :players     {"Andrew" {:spirit :fangs, :rating 4}}})
 (def test-state {:metadata {:spirits     {:river      {:name "River Surges in Sunlight", :difficulty :low}
                                           :fangs      {:name "Sharp Fangs Behind the Leaves", :difficulty :moderate}
                                           :many-minds {:name "Many Minds Move as One", :difficulty :moderate}}
@@ -10,21 +25,7 @@
                                           :france  {:name "France"}}}
                  :users    {:players {"Andrew" {}
                                       "Marc"   {}}
-                            :games   [{:timestamp   #inst "2024-05-12T00:30:00.000-00:00",
-                                       :outcome     :win,
-                                       :num-turns   7,
-                                       :adversaries {:england 3},
-                                       :players     {"Andrew" {:spirit :fangs, :rating 4}}}
-                                      {:timestamp   #inst "2024-05-12T01:30:00.000-00:00",
-                                       :outcome     :loss,
-                                       :num-turns   8,
-                                       :adversaries {:england 4},
-                                       :players     {"Andrew" {:spirit :river, :rating 2}}}
-                                      {:timestamp   #inst "2024-05-12T02:30:00.000-00:00",
-                                       :outcome     :win,
-                                       :num-turns   9,
-                                       :adversaries {:france 2},
-                                       :players     {"Andrew" {:spirit :fangs, :rating 4}}}]}})
+                            :games   [game1 game2 game3]}})
 
 (deftest parse-record-game-test
   (testing "Invalid inputs"
@@ -80,11 +81,12 @@
                  2 "stats Andrew=river;Marc=many-minds"
                  3 "stats Andrew=river;Marc=many-minds;england"))
 
-(deftest filtered-stats-test
-  (are [expected input] (= expected (cli/filtered-stats test-state input))
-                        {:num 3 :win-rate 67} "stats"
-                        {:num 3 :win-rate 67} "stats Andrew"
-                        {:num 2 :win-rate 50} "stats england"
-                        {:num 2 :win-rate 100} "stats Andrew=fangs"
-                        {:num 2 :win-rate 50} "stats england;Andrew"
-                        {:num 1 :win-rate 100} "stats england;Andrew=fangs"))
+(deftest filtered-games-test
+  (are [expected input] (= (cli/filtered-games test-state input) expected)
+                        [game1 game2 game3] "stats"
+                        [game1 game2 game3] "stats Andrew"
+                        [game1 game2] "stats england"
+                        [game3] "stats france"
+                        [game1 game3] "stats Andrew=fangs"
+                        [game1] "stats Andrew=fangs;england"
+                        [game1] "stats england;Andrew=fangs"))

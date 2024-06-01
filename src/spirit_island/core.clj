@@ -17,3 +17,7 @@
 
 (defn first-some? [coll]
   (first (filter some? coll)))
+
+(defn say
+  "Returns the `singular` string if n = 1, or else the `multiple` string. Helpful for forming proper English sentences."
+  [n singular multiple] (if (= n 1) singular multiple))

@@ -22,7 +22,8 @@
 (defn game-stats [games]
   (when (seq games) (let [n (count games)
                         wins (count (filter #(-> % :outcome (= :win)) games))]
-                    {:num (count games) :win-rate (Math/round ^Double (* 100 (/ wins n)))})))
+                    {:num (count games), :wins wins, :losses (- (count games) wins),
+                     :win-rate (Math/round ^Double (* 100 (/ wins n)))})))
 
 (def #^{:private true} win-rate-comparator (juxt (comp - :win-rate second)
                                                  (comp - :num second)

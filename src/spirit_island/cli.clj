@@ -1,8 +1,7 @@
 (ns spirit-island.cli
   (:require [clojure.string :as str]
-            [clojure.pprint :refer [pprint]]
             [integrant.core :as ig]
-            [spirit_island.core :refer [only-when parse-long-within-range first-some?]]
+            [spirit_island.core :refer [only-when parse-long-within-range first-some? say]]
             [spirit-island.game :as g]
             [spirit_island.metadata :as m]
             [spirit-island.users :as u]))
@@ -15,7 +14,7 @@
 (def #^{:private true} record-game-usage
   "record-game [win|loss] [num-turns] [none|adversary=level] [Player=spirit,board,rating;...]")
 (def #^{:private true} stats-usage
-  "stats [adversary|player]")
+  "stats (adversary|player(=spirit);... )")
 (defn invalid-format-message [message]
   (println "Invalid format:" message))
 
@@ -23,7 +22,7 @@
 
 (defmethod execute :default [state _]
   (println "Unrecognized command. Use one of the following:")
-  (println (str/join "\n" (map #(str " * " %) ["spirits" "users" create-game-usage record-game-usage])))
+  (println (str/join "\n" (map #(str " * " %) ["spirits" "users" create-game-usage record-game-usage stats-usage])))
   state)
 
 (defmethod execute "exit" [_ _])
@@ -122,7 +121,9 @@
     :invalid))
 
 (defn print-stats [stats]
-  (letfn [(format-stats [{:keys [num win-rate]}] (str num " game" (if (= num 1) "" "s") " with a win rate of " win-rate "%"))]
+  (letfn [(format-stats [{:keys [num wins win-rate]}] (str wins (say wins " win" " wins")
+                                                           " out of " num (say num " game" " games")
+                                                           " for a win rate of " win-rate "%"))]
     (cond (map? stats) (println (format-stats stats))
           (map? (-> stats first second)) (doseq [[id s] stats] (println (str "For " (str id) ", " (format-stats s))))
           :else (assert "Unknown datatype for stats:" (type stats)))))
