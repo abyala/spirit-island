@@ -7,7 +7,9 @@
                :thunderspeaker  {:name "Thunderspeaker", :difficulty :moderate}
                :green           {:name "A Spread of Rampant Green", :difficulty :moderate}
                :ocean           {:name "Ocean's Hungry Grasp", :difficulty :high}
-               :bringer         {:name "Bringer of Dreams and Nightmares", :difficulty :high}
+               :bringer         {:name "Bringer of Dreams and Nightmares", :difficulty :high
+                                 :aspects {:enticing {:name "Enticing"},
+                                           :violence {:name "Violence"}}}
 
                ;Branch and Claw
                :keeper          {:name "Keeper of the Forbidden Wilds", :difficulty :moderate}

@@ -55,3 +55,11 @@
                 ["a"] "A"
                 [:a :b] :A
                 [:a :a :b :b] :c))
+
+(deftest no-nil-vals-test
+  (are [expected m] (= (c/no-nil-vals m) expected)
+                    nil nil
+                    {} {}
+                    {:a 1 :b 2} {:a 1 :b 2}
+                    {:a 1} {:a 1 :b nil}
+                    {} {:a nil :b nil}))

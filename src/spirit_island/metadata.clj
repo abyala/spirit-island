@@ -36,8 +36,11 @@
 (defn adversary? [metadata s]
   (contains? (set (adversary-names metadata)) (keyword s)))
 
-(defn spirit? [metadata s]
-  (contains? (-> metadata :spirits keys set) (keyword s)))
+(defn spirit?
+  ([metadata spirit] (spirit? metadata spirit nil))
+  ([metadata spirit aspect]
+   (when-some [{:keys [aspects]} (get-in metadata [:spirits (keyword spirit)])]
+     (or (nil? aspect) (contains? aspects (keyword aspect))))))
 
 (defn board? [metadata s]
   (in? (:boards metadata) (keyword s)))

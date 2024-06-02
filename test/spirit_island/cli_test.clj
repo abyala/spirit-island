@@ -16,9 +16,10 @@
             :outcome     :win,
             :num-turns   9,
             :adversaries {:france 2},
-            :players     {"Andrew" {:spirit :fangs, :rating 4}}})
+            :players     {"Andrew" {:spirit :fangs, :aspect :encircle, :rating 4}}})
 (def test-state {:metadata {:spirits     {:river      {:name "River Surges in Sunlight", :difficulty :low}
-                                          :fangs      {:name "Sharp Fangs Behind the Leaves", :difficulty :moderate}
+                                          :fangs      {:name "Sharp Fangs Behind the Leaves", :difficulty :moderate
+                                                       :aspects {:encircle {}}}
                                           :many-minds {:name "Many Minds Move as One", :difficulty :moderate}}
                             :boards      [:a :b :c :d :e :f],
                             :adversaries {:england {:name "England"}
@@ -40,6 +41,7 @@
              "record-game win 7 england=4 Andrew=river,4"
              "record-game win 7 england=4 Andrewwwww=river,b,4"
              "record-game win 7 england=4 Andrew=riverrrr,b,4"
+             "record-game win 7 england=4 Andrew=river,sunshinezzz,b,4"
              "record-game win 7 england=4 Andrew=river,b,47"
              "record-game win 7 england=4 Andrew,river,b,4"
              "record-game win 7 england=4 Andrew=river,b,4;Marc=fangs,4"
@@ -61,7 +63,11 @@
 
                     {:win?    :win, :turns 4, :adversaries {},
                      :players {"Andrew" {:spirit :many-minds, :board :d, :rating 4}}}
-                    "record-game win 4 none Andrew=many-minds,d,4"))
+                    "record-game win 4 none Andrew=many-minds,d,4"
+
+                    {:win? :win, :turns 4, :adversaries {},
+                     :players {"Andrew" {:spirit :fangs, :aspect :encircle, :board :d, :rating 4}}}
+                    "record-game win 4 none Andrew=fangs,encircle,d,4"))
 
 (deftest parse-stat-filters-test
   (are [input] (nil? (cli/parse-stat-filters test-state input))

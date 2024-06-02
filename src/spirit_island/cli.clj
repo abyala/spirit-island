@@ -1,7 +1,7 @@
 (ns spirit-island.cli
   (:require [clojure.string :as str]
             [integrant.core :as ig]
-            [spirit_island.core :refer [only-when parse-long-within-range first-some? say]]
+            [spirit_island.core :refer [only-when parse-long-within-range first-some? say no-nil-vals]]
             [spirit-island.game :as g]
             [spirit_island.metadata :as m]
             [spirit-island.users :as u]))
@@ -12,7 +12,7 @@
 (def #^{:private true} create-game-usage
   "create-game [Player;...]")
 (def #^{:private true} record-game-usage
-  "record-game [win|loss] [num-turns] [none|adversary=level] [Player=spirit,board,rating;...]")
+  "record-game [win|loss] [num-turns] [none|adversary=level] [Player=spirit,(aspect?,)board,rating;...]")
 (def #^{:private true} stats-usage
   "stats (adversary|player(=spirit);... )")
 (defn invalid-format-message [message]
@@ -71,16 +71,22 @@
                                     (str/split input-str #";"))))
           (parse-players [input-str]
             (when input-str
-              (reduce (fn [acc s] (if-some [[_ player spirit board rating] (re-matches #"(\w+)=([\w-]+),(\w),(\d+)" s)]
-                                    (if (and (u/valid? (state-users state) player)
-                                             (m/spirit? (state-metadata state) spirit)
-                                             (m/board? (state-metadata state) board)
-                                             (parse-long-within-range rating 1 5))
-                                      (assoc acc player {:spirit (keyword spirit)
-                                                         :board  (keyword board)
-                                                         :rating (parse-long rating)})
-                                      (reduced nil))
-                                    (reduced nil)))
+              (reduce (fn [acc s]
+                        (if-some [[_ player spirit a b c] (first (keep #(re-matches % s)
+                                                                       [#"(\w+)=([\w-]+),(\w),(\d+)"
+                                                                        #"(\w+)=([\w-]+),([\w-]+),(\w),(\d+)"]))]
+                          (let [[aspect-str board rating] (if (some? c) [a b c] [nil a b])
+                                aspect (only-when #(not= % "base") aspect-str)]
+                            (if (and (u/valid? (state-users state) player)
+                                     (m/spirit? (state-metadata state) spirit aspect)
+                                     (m/board? (state-metadata state) board)
+                                     (parse-long-within-range rating 1 5))
+                              (assoc acc player (no-nil-vals {:spirit (keyword spirit)
+                                                              :aspect (keyword aspect)
+                                                              :board  (keyword board)
+                                                              :rating (parse-long rating)}))
+                              (reduced nil)))
+                          (reduced nil)))
                       {}
                       (str/split input-str #";"))))]
     (let [[_ win-loss-str turns-str adversaries-str players-str] (str/split input #" ")]
