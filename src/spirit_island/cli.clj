@@ -1,7 +1,8 @@
 (ns spirit-island.cli
   (:require [clojure.string :as str]
             [integrant.core :as ig]
-            [spirit_island.core :refer [only-when parse-long-within-range first-some? say no-nil-vals]]
+            [spirit-island.cli-parse :as clip]
+            [spirit_island.core :refer [only-when first-some? say]]
             [spirit-island.game :as g]
             [spirit_island.metadata :as m]
             [spirit-island.users :as u]))
@@ -49,61 +50,29 @@
       (println (str " * " name " is using board \"" (subs (str board) 1) "\" to play \"" spirit "\"")))))
 
 (defmethod execute "create-game" [state input]
-  (let [[_ players-str] (str/split input #" ")
-        players (str/split (or players-str "") #";")]
-    (if (not (u/valid? (state-users state) players))
+  (let [players (clip/parse-create-game input)]
+    (if (= players :invalid)
       (invalid-format-message create-game-usage)
-      (print-game (g/random-game (state-metadata state) players)))
+      (if (not (u/player? (state-users state) players))
+        (println "Invalid players")
+        (print-game (g/random-game (state-metadata state) players))))
     state))
 
-(defn parse-record-game [state input]
-  (letfn [(parse-adversaries [input-str]
-            (case input-str nil nil
-                            "none" {}
-                            ":none" {}
-                            (reduce (fn [acc s] (if-some [[_ adversary level] (re-matches #"(\w+)=(\d+)" s)]
-                                                  (if (and (m/adversary? (state-metadata state) adversary)
-                                                           (parse-long-within-range level 0 6))
-                                                    (assoc acc (keyword adversary) (parse-long level))
-                                                    (reduced nil))
-                                                  (reduced nil)))
-                                    {}
-                                    (str/split input-str #";"))))
-          (parse-players [input-str]
-            (when input-str
-              (reduce (fn [acc s]
-                        (if-some [[_ player spirit a b c] (first (keep #(re-matches % s)
-                                                                       [#"(\w+)=([\w-]+),(\w),(\d+)"
-                                                                        #"(\w+)=([\w-]+),([\w-]+),(\w),(\d+)"]))]
-                          (let [[aspect-str board rating] (if (some? c) [a b c] [nil a b])
-                                aspect (only-when #(not= % "base") aspect-str)]
-                            (if (and (u/valid? (state-users state) player)
-                                     (m/spirit? (state-metadata state) spirit aspect)
-                                     (m/board? (state-metadata state) board)
-                                     (parse-long-within-range rating 1 5))
-                              (assoc acc player (no-nil-vals {:spirit (keyword spirit)
-                                                              :aspect (keyword aspect)
-                                                              :board  (keyword board)
-                                                              :rating (parse-long rating)}))
-                              (reduced nil)))
-                          (reduced nil)))
-                      {}
-                      (str/split input-str #";"))))]
-    (let [[_ win-loss-str turns-str adversaries-str players-str] (str/split input #" ")]
-      (only-when #(not-any? nil? (vals %))
-                 {:win?        ({"win" :win "loss" :loss} win-loss-str)
-                  :turns       (parse-long-within-range turns-str 1 13)
-                  :adversaries (parse-adversaries adversaries-str)
-                  :players     (parse-players players-str)}))))
-
 (defmethod execute "record-game" [state input]
-  (if-some [game (parse-record-game state input)]
-    (let [{:keys [win? turns adversaries players]} game
-          users' (u/add-game (state-users state) win? turns adversaries players)]
-      (println "Recorded and saved")
-      (assoc state :users users'))
-    (do (invalid-format-message record-game-usage)
-        state)))
+  (let [metadata (state-metadata state)
+        users (state-users state)
+        game (clip/parse-record-game input)
+        error (fn [m] (println m) (invalid-format-message record-game-usage) state)]
+    (cond (keyword? game) (error game)
+          (not (every? (partial m/adversary? metadata) (-> game :adversaries keys))) (error :invalid-adversary)
+          (not (every? (partial u/player? users) (-> game :players keys))) (error :invalid-player)
+          (not (every? (fn [[s a]] (m/spirit? metadata s a))
+                       (->> game :players vals (map (juxt :spirit :aspect))))) (error :invalid-spirit)
+          (not (every? (partial m/board? metadata) (->> game :players vals (map :board)))) (error :invalid-board)
+          :else (let [{:keys [win? turns adversaries players]} game
+                      users' (u/add-game (state-users state) win? turns adversaries players)]
+                  (println "Recorded and saved")
+                  (assoc state :users users')))))
 
 (defn parse-stat-filters [state input]
   (if (<= (count input) 6)
@@ -112,10 +81,10 @@
           users (state-users state)]
       (letfn [(parsed-adversary [s] (when (m/adversary? metadata s)
                                       #(g/against-adversary? % (keyword s))))
-              (parsed-user [s] (when (u/valid? users s)
+              (parsed-user [s] (when (u/player? users s)
                                  #(g/with-player? % s)))
               (parsed-user-spirit [s] (when-some [[_ player spirit] (re-matches #"(\w+)=([\w-]+)" s)]
-                                        (when (and (u/valid? users player) (m/spirit? metadata spirit))
+                                        (when (and (u/player? users player) (m/spirit? metadata spirit))
                                           #(g/with-player-and-spirit? % player (keyword spirit)))))]
         (->> (str/split (subs input 6) #";")
              (map #(first-some? ((juxt parsed-adversary parsed-user parsed-user-spirit) %)))

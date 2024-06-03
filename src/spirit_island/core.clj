@@ -17,8 +17,10 @@
 (defn map-values [f m]
   (reduce-kv #(assoc %1 %2 (f %3)) {} m))
 
-(defn first-some? [coll]
-  (first (filter some? coll)))
+(defn first-when [f coll]
+  (first (filter f coll)))
+
+(defn first-some? [coll] (first-when some? coll))
 
 (defn say
   "Returns the `singular` string if n = 1, or else the `multiple` string. Helpful for forming proper English sentences."

@@ -6,20 +6,20 @@
 
 (deftest valid?-test
   (testing "Collection of users"
-    (are [names] (u/valid? test-users names)
+    (are [names] (u/player? test-users names)
                  ["Andrew"]
                  ["Andrew" "Scotty"]
                  ["Marc" "Scotty"])
-    (are [names] (not (u/valid? test-users names))
+    (are [names] (not (u/player? test-users names))
                  []
                  ["Bob"]
                  ["Andrew" "Bob"]
                  ["Bob" "Scotty"]))
 
   (testing "Single user"
-    (are [name] (u/valid? test-users name)
+    (are [name] (u/player? test-users name)
                 "Andrew"
                 "Scotty")
-    (are [name] (not (u/valid? test-users name))
+    (are [name] (not (u/player? test-users name))
                 nil
                 "Bob")))

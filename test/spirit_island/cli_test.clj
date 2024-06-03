@@ -28,47 +28,6 @@
                                       "Marc"   {}}
                             :games   [game1 game2 game3]}})
 
-(deftest parse-record-game-test
-  (testing "Invalid inputs"
-    (are [s] (nil? (cli/parse-record-game test-state s))
-             "record-game"
-             "record-game asdfasdf"
-             "record-game winner 7 england=4 Andrew=river,b,4"
-             "record-game win 100 england=4 Andrew=river,b,4"
-             "record-game win 7 englanddasd=4 Andrew=river,b,4"
-             "record-game win 7 england=44 Andrew=river,b,4"
-             "record-game win 7 england,4 Andrew=river,b,4"
-             "record-game win 7 england=4 Andrew=river,4"
-             "record-game win 7 england=4 Andrewwwww=river,b,4"
-             "record-game win 7 england=4 Andrew=riverrrr,b,4"
-             "record-game win 7 england=4 Andrew=river,sunshinezzz,b,4"
-             "record-game win 7 england=4 Andrew=river,b,47"
-             "record-game win 7 england=4 Andrew,river,b,4"
-             "record-game win 7 england=4 Andrew=river,b,4;Marc=fangs,4"
-             "record-game win 7 england=4 Andrew=river,b;Marc=fangs,c,5"))
-  (are [expected s] (= expected (cli/parse-record-game test-state s))
-                    {:win?    :win, :turns 7, :adversaries {:england 4},
-                     :players {"Andrew" {:spirit :river, :board :b,
-                                         :rating 4}}}
-                    "record-game win 7 england=4 Andrew=river,b,4"
-
-                    {:win?    :win, :turns 7, :adversaries {:england 4},
-                     :players {"Andrew" {:spirit :river, :board :b, :rating 4}
-                               "Marc"   {:spirit :fangs, :board :c, :rating 3}}}
-                    "record-game win 7 england=4 Andrew=river,b,4;Marc=fangs,c,3"
-
-                    {:win?    :win, :turns 7, :adversaries {:england 4, :france 2},
-                     :players {"Andrew" {:spirit :river, :board :b, :rating 4}}}
-                    "record-game win 7 england=4;france=2 Andrew=river,b,4"
-
-                    {:win?    :win, :turns 4, :adversaries {},
-                     :players {"Andrew" {:spirit :many-minds, :board :d, :rating 4}}}
-                    "record-game win 4 none Andrew=many-minds,d,4"
-
-                    {:win? :win, :turns 4, :adversaries {},
-                     :players {"Andrew" {:spirit :fangs, :aspect :encircle, :board :d, :rating 4}}}
-                    "record-game win 4 none Andrew=fangs,encircle,d,4"))
-
 (deftest parse-stat-filters-test
   (are [input] (nil? (cli/parse-stat-filters test-state input))
                "stats blah"

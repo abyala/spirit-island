@@ -19,7 +19,7 @@
 (defn all-users [users]
   (-> users :players keys sort))
 
-(defn valid? [users names]
+(defn player? [users names]
   (if (string? names) (recur users [names])
                       (when (seq names)
                         (let [u (set (all-users users))]
