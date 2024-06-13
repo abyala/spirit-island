@@ -1,7 +1,14 @@
 {:spirits     {
                ; Base game
-               :lightning       {:name "Lightning's Swift Strike", :difficulty :low}
-               :vital-strength  {:name "Vital Strength of the Earth", :difficulty :low}
+               :lightning       {:name "Lightning's Swift Strike", :difficulty :low
+                                 :aspects {:pandemonium {:name "Pandemonium"}
+                                           :immense {:name "Immense"}
+                                           :wind {:name "Wind"}
+                                           :sparking {:name "Sparking"}}}
+               :vital-strength  {:name "Vital Strength of the Earth", :difficulty :low
+                                 :aspects {:might {:name "Might"}
+                                           :nourishing {:name "Nourishing"}
+                                           :resilience {:name "Resilience"}}}
                :river           {:name "River Surges in Sunlight", :difficulty :low}
                :shadows         {:name "Shadows Flicker Like Flame", :difficulty :low}
                :thunderspeaker  {:name "Thunderspeaker", :difficulty :moderate}
