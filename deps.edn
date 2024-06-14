@@ -1,2 +1,2 @@
-{:deps { integrant/integrant {:mvn/version "0.9.0"}
-         clj-time/clj-time {:mvn/version "0.15.2"}}}
+{:deps {clj-time/clj-time   {:mvn/version "0.15.2"}
+        integrant/integrant {:mvn/version "0.9.0"}}}

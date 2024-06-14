@@ -1,11 +1,27 @@
 (ns spirit_island.metadata
   (:require [clojure.edn :as edn]
+            [clojure.spec.alpha :as s]
             [spirit_island.core :refer [in?]]
             [integrant.core :as ig]))
 
+(s/def :shared/name string?)
+(s/def :spirit/difficulty #{:low :moderate :high :very-high})
+(s/def :spirit/aspect (s/keys :req-un [:shared/name]))
+(s/def :spirit/aspects (s/map-of keyword :spirit/aspect))
+(s/def :metadata/spirit (s/keys :req-un [:shared/name :spirit/difficulty]
+                                :opt-un [:spirit/aspects]))
+(s/def :metadata/spirits (s/map-of keyword? :metadata/spirit))
+(s/def :metadata/boards (s/coll-of keyword?))
+(s/def :metadata/adversary (s/keys :req-un [:shared/name]))
+(s/def :metadata/adversaries (s/map-of keyword? :metadata/adversary))
+(s/def :metadata/metadata (s/keys :req-un [:metadata/spirits :metadata/boards :metadata/adversaries]))
+
+(defn valid? [metadata] (s/valid? :metadata/metadata metadata))
 (defn parse-metadata
   ([] (parse-metadata "resources/metadata.edn"))
-  ([filename] (edn/read-string (slurp filename))))
+  ([filename] (let [m (edn/read-string (slurp filename))]
+                (assert (valid? m) (str "Invalid metadata at file " filename))
+                m)))
 
 (defn spirit-names [metadata]
   (map :name (vals (:spirits metadata))))

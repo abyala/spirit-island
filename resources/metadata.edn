@@ -1,30 +1,48 @@
 {:spirits     {
                ; Base game
-               :lightning       {:name "Lightning's Swift Strike", :difficulty :low
+               :lightning       {:name    "Lightning's Swift Strike", :difficulty :low
                                  :aspects {:pandemonium {:name "Pandemonium"}
-                                           :immense {:name "Immense"}
-                                           :wind {:name "Wind"}
-                                           :sparking {:name "Sparking"}}}
-               :vital-strength  {:name "Vital Strength of the Earth", :difficulty :low
-                                 :aspects {:might {:name "Might"}
+                                           :immense     {:name "Immense"}
+                                           :wind        {:name "Wind"}
+                                           :sparking    {:name "Sparking"}}}
+               :vital-strength  {:name    "Vital Strength of the Earth", :difficulty :low
+                                 :aspects {:might      {:name "Might"}
                                            :nourishing {:name "Nourishing"}
                                            :resilience {:name "Resilience"}}}
-               :river           {:name "River Surges in Sunlight", :difficulty :low}
-               :shadows         {:name "Shadows Flicker Like Flame", :difficulty :low}
-               :thunderspeaker  {:name "Thunderspeaker", :difficulty :moderate}
-               :green           {:name "A Spread of Rampant Green", :difficulty :moderate}
-               :ocean           {:name "Ocean's Hungry Grasp", :difficulty :high}
-               :bringer         {:name "Bringer of Dreams and Nightmares", :difficulty :high
+               :river           {:name    "River Surges in Sunlight", :difficulty :low
+                                 :aspects {:haven    {:name "Haven"}
+                                           :sunshine {:name "Sunshine"}
+                                           :travel   {:name "Travel"}}}
+               :shadows         {:name    "Shadows Flicker Like Flame", :difficulty :low
+                                 :aspects {:amorphous  {:name "Amorphous"}
+                                           :dark-fire  {:name "Dark Fire"}
+                                           :foreboding {:name "Foreboding"}
+                                           :madness    {:name "Madness"}
+                                           :reach      {:name "Reach"}}}
+               :thunderspeaker  {:name    "Thunderspeaker", :difficulty :moderate
+                                 :aspects {:tactician {:name "Tactician"}
+                                           :warrioer  {:name "Warrior"}}}
+               :green           {:name    "A Spread of Rampant Green", :difficulty :moderate
+                                 :aspects {:regrowth {:name "Regrowth"}
+                                           :tangles  {:name "Tangles"}}}
+               :ocean           {:name    "Ocean's Hungry Grasp", :difficulty :high
+                                 :aspects {:deeps {:name "Deeps"}}}
+               :bringer         {:name    "Bringer of Dreams and Nightmares", :difficulty :high
                                  :aspects {:enticing {:name "Enticing"},
                                            :violence {:name "Violence"}}}
 
                ;Branch and Claw
-               :keeper          {:name "Keeper of the Forbidden Wilds", :difficulty :moderate}
-               :fangs           {:name "Sharp Fangs Behind the Leaves", :difficulty :moderate}
+               :keeper          {:name "Keeper of the Forbidden Wilds", :difficulty :moderate
+                                 :aspects {:hostility {:name "Spreading Hostility"}}}
+               :fangs           {:name "Sharp Fangs Behind the Leaves", :difficulty :moderate
+                                 :aspects {:encircle {:name "Encircle"}
+                                           :unconstrained {:name "Unconstrained"}}}
 
                ; Feather and Flame
-               :wildfire        {:name "Heart of the Wildfire", :difficulty :high}
-               :serpent         {:name "Serpent Slumbering Beneath the Island", :difficulty :high}
+               :wildfire        {:name "Heart of the Wildfire", :difficulty :high
+                                 :aspects {:terraforming {:name "Terraforming"}}}
+               :serpent         {:name "Serpent Slumbering Beneath the Island", :difficulty :high
+                                 :aspects {:locus {:name "Locus"}}}
                :downpour        {:name "Downpour Drenches the World", :difficulty :high}
                :finder          {:name "Finder of Paths Unseen", :difficulty :very-high}
 
@@ -33,9 +51,13 @@
                :fractured       {:name "Fractured Days Split the Sky", :difficulty :very-high}
                :many-minds      {:name "Many Minds Move as One", :difficulty :moderate}
                :starlight       {:name "Starlight Seeks its Form", :difficulty :very-high}
-               :shroud          {:name "Shroud of Silent Mist", :difficulty :high}
-               :lure            {:name "Lure of the Deep Wilderness", :difficulty :moderate}
-               :shifting        {:name "Shifting Memory of Ages", :difficulty :moderate}
+               :shroud          {:name "Shroud of Silent Mist", :difficulty :high
+                                 :aspects {:stranded {:name "Stranded"}}}
+               :lure            {:name "Lure of the Deep Wilderness", :difficulty :moderate
+                                 :aspects {:lair {:name "Lair"}}}
+               :shifting        {:name "Shifting Memory of Ages", :difficulty :moderate
+                                 :aspects {:intensify {:name "Intensify"}
+                                           :mentor {:name "Mentor"}}}
                :volcano         {:name "Volcano Looming High", :difficulty :moderate}
                :stone           {:name "Stone's Unyielding Defiance", :difficulty :moderate}
                :trickster       {:name "Grinning Trickster Stirs Up Trouble", :difficulty :moderate}
