@@ -10,6 +10,7 @@
 (defn- state-metadata [state] (:metadata state))
 (defn- state-users [state] (:users state))
 
+(def ditto "\"")
 (def #^{:private true} create-game-usage
   "create-game [Player;...]")
 (def #^{:private true} record-game-usage
@@ -19,25 +20,25 @@
 (defn invalid-format-message [message]
   (println "Invalid format:" message))
 
+(defn valid-state? [s]
+  (every? some? ((juxt :metadata :users) s)))
+
 (defmulti execute (fn [_ line] (-> line (str/split #" ") first)))
 
-(defmethod execute :default [state _]
+(defmethod execute :default [_ _]
   (println "Unrecognized command. Use one of the following:")
-  (println (str/join "\n" (map #(str " * " %) ["spirits" "users" create-game-usage record-game-usage stats-usage])))
-  state)
+  (println (str/join "\n" (map #(str " * " %) ["spirits" "users" create-game-usage record-game-usage stats-usage]))))
 
-(defmethod execute "exit" [_ _])
+(defmethod execute "exit" [_ _] :exit)
 (defmethod execute "users" [state _]
   (println "Listing all of the users:")
   (doseq [user (sort (u/all-users (state-users state)))]
-    (println user))
-  state)
+    (println user)))
 
 (defmethod execute "spirits" [state _]
   (println "Listing all of the spirits:")
   (doseq [spirit (sort (m/spirit-names (state-metadata state)))]
-    (println spirit))
-  state)
+    (println spirit)))
 
 (defn print-game [game]
   (let [{:keys [adversaries players]} game]
@@ -55,8 +56,8 @@
       (invalid-format-message create-game-usage)
       (if (not (u/player? (state-users state) players))
         (println "Invalid players")
-        (print-game (g/random-game (state-metadata state) players))))
-    state))
+        (do (print-game (g/random-game (state-metadata state) players))
+            :preserve-request)))))
 
 (defmethod execute "record-game" [state input]
   (let [metadata (state-metadata state)
@@ -116,16 +117,23 @@
   (let [games (filtered-games state input)]
     (if (= games :invalid)
       (invalid-format-message stats-usage)
-      (show-all-stats games)))
-  state)
+      (show-all-stats games))))
 
 (defn run-cli
   ([] (run-cli (spirit_island.metadata/parse-metadata) (spirit-island.users/parse-users)))
   ([state]
    (println)
-   (if-let [s' (execute state (read-line))]
-     (recur s')
-     (println "Exiting")))
+   (let [remove-previous (fn [s] (dissoc s :previous-request))
+         line-orig (read-line)
+         line (or (when (= line-orig ditto) (:previous-request state))
+                  line-orig)
+         response (execute state line)]
+     (cond
+       (= :exit response)             (println "Exiting")
+       (nil? response)                (recur (remove-previous state))
+       (= :preserve-request response) (recur (assoc state :previous-request line))
+       (valid-state? response)        (recur (remove-previous response))
+       :else (println "ERROR: Unexpected response in CLI.  Exiting to be safe."))))
   ([metadata users]
    (println "Starting the Spirit Island CLI")
    (run-cli {:metadata metadata :users users})))
