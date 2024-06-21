@@ -23,12 +23,14 @@
 (defn valid-state? [s]
   (every? some? ((juxt :metadata :users) s)))
 
-(defmulti execute (fn [_ line] (-> line (str/split #" ") first)))
+(defmulti execute (fn [_ line] (when (not= "" (or line ""))
+                                 (-> line (str/split #" ") first))))
 
 (defmethod execute :default [_ _]
   (println "Unrecognized command. Use one of the following:")
   (println (str/join "\n" (map #(str " * " %) ["spirits" "users" create-game-usage record-game-usage stats-usage]))))
 
+(defmethod execute nil [_ _])
 (defmethod execute "exit" [_ _] :exit)
 (defmethod execute "users" [state _]
   (println "Listing all of the users:")
@@ -129,7 +131,7 @@
                 "" nil
                 ditto (:previous-request state)
                 line-orig)
-         response (when line (execute state line))]
+         response (execute state line)]
      (cond
        (nil? line)                    (recur state)
        (= :exit response)             (println "Exiting")
