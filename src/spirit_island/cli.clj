@@ -124,11 +124,14 @@
   ([state]
    (println)
    (let [remove-previous (fn [s] (dissoc s :previous-request))
-         line-orig (read-line)
-         line (or (when (= line-orig ditto) (:previous-request state))
-                  line-orig)
-         response (execute state line)]
+         line-orig (str/trim (read-line))
+         line (condp = line-orig
+                "" nil
+                ditto (:previous-request state)
+                line-orig)
+         response (when line (execute state line))]
      (cond
+       (nil? line)                    (recur state)
        (= :exit response)             (println "Exiting")
        (nil? response)                (recur (remove-previous state))
        (= :preserve-request response) (recur (assoc state :previous-request line))
