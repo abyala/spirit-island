@@ -1,10 +1,9 @@
 (ns spirit-island.game
   (:require [spirit_island.core :refer [in? map-values]]
-            [spirit_island.metadata :as m])
-  (:import [java.util Random]))
+            [spirit_island.metadata :as m]))
 
 (defn random-game [metadata players]
-  {:adversaries {(first (shuffle (m/adversary-names metadata))) (-> (Random.) (.nextInt 6) inc)}
+  {:adversaries {(first (shuffle (m/adversary-names metadata))) (inc (rand-int 6))}
    :players     (zipmap players (map #(hash-map :spirit %1 :board %2)
                                      (shuffle (m/spirit-names metadata))
                                      (shuffle (m/all-boards metadata))))})
