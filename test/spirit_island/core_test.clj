@@ -14,6 +14,16 @@
                seq [:a :b :c]
                (partial every? even?) [2 4 6])))
 
+(deftest count-when-test
+  (are [coll n] (= (c/count-when even? coll) n)
+                nil 0
+                [] 0
+                () 0
+                [0] 1
+                [1] 0
+                (range 4) 2
+                (range 5) 3))
+
 (deftest numeric?-test
   (testing "Not numbers"
     (are [v] (false? (c/numeric? v))
@@ -63,3 +73,13 @@
                     {:a 1 :b 2} {:a 1 :b 2}
                     {:a 1} {:a 1 :b nil}
                     {} {:a nil :b nil}))
+
+(deftest average-test
+  (are [n] (nil? (c/average n))
+           nil
+           ())
+  (are [expected n] (= (c/average n) expected)
+                    5 [5]
+                    5 [5 5]
+                    5 [4 5 6]
+                    (/ 16 3) [5 5 6]))

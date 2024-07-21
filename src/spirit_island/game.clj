@@ -1,5 +1,5 @@
 (ns spirit-island.game
-  (:require [spirit_island.core :refer [in? map-values]]
+  (:require [spirit_island.core :refer [count-when in? map-values rounded-percent]]
             [spirit_island.metadata :as m]))
 
 (defn random-game [metadata players]
@@ -17,12 +17,15 @@
 (defn with-spirit? [game spirit] (in? (spirits-in-game game) spirit))
 (defn with-player-and-spirit? [game player spirit] (some (fn [[p {s :spirit}]] (and (= p player) (= s spirit)))
                                                          (:players game)))
+(defn win? [game] (= :win (:outcome game)))
 
 (defn game-stats [games]
-  (when (seq games) (let [n (count games)
-                        wins (count (filter #(-> % :outcome (= :win)) games))]
-                    {:num (count games), :wins wins, :losses (- (count games) wins),
-                     :win-rate (Math/round ^Double (* 100 (/ wins n)))})))
+  (when (seq games) (let [num (count games)
+                          wins (count-when win? games)]
+                      {:num      num,
+                       :wins     wins,
+                       :losses   (- num wins),
+                       :win-rate (rounded-percent wins num)})))
 
 (def #^{:private true} win-rate-comparator (juxt (comp - :win-rate second)
                                                  (comp - :num second)
@@ -33,3 +36,12 @@
        (group-by (comp first keys :adversaries))
        (map-values game-stats)
        (sort-by win-rate-comparator)))
+
+(defn stats-by-spirit
+  ([games] (->> games
+                (mapcat (comp vals :players))
+                (group-by :spirit)
+                (reduce-kv (fn [acc spirit games] (assoc acc spirit {:count (count games)
+                                                                     :rating (* 1.0 (spirit_island.core/average (map :rating games)))} )) {})
+                (sort-by (comp :rating second))))
+  ([games player] (stats-by-spirit (map #(update % :players select-keys [player]) games))))
