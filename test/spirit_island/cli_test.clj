@@ -1,6 +1,7 @@
 (ns spirit-island.cli-test
   (:require [clojure.test :refer :all]
-            [spirit-island.cli :as cli]))
+            [spirit-island.cli :as cli]
+            [spirit_island.core :as c]))
 
 (def game1 {:timestamp   #inst "2024-05-12T00:30:00.000-00:00",
             :outcome     :win,
@@ -45,6 +46,20 @@
                  2 "stats england;Andrew"
                  2 "stats Andrew=river;Marc=many-minds"
                  3 "stats Andrew=river;Marc=many-minds;england"))
+
+(deftest rounded-percent-test
+  (are [expected n] (= (c/rounded-percent n) expected)
+                    100 1
+                    50 (/ 1 2)
+                    33 (/ 1 3)
+                    67 (/ 2 3)
+                    100 (/ 3 3))
+  (are [expected n d] (= (c/rounded-percent n d) expected)
+                      100 1 1
+                      50 1 2
+                      33 1 3
+                      67 2 3
+                      100 3 3))
 
 (deftest filtered-games-test
   (are [expected input] (= (cli/filtered-games test-state input) expected)
