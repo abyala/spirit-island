@@ -98,22 +98,28 @@
     (reduce #(filter %2 %1) (u/all-games (state-users state)) filters)
     :invalid))
 
+(defn one-decimal [n] (format "%.1f" (float n)))
+
 (defn print-stats [stats]
-  (letfn [(format-stats [{:keys [num wins win-rate]}] (str wins (say wins " win" " wins")
+  (letfn [(format-rating [rating] (when rating (str " and a rating of " (one-decimal rating))))
+          (format-stats [{:keys [num wins win-rate rating]}] (str wins (say wins " win" " wins")
                                                            " out of " num (say num " game" " games")
-                                                           " for a win rate of " win-rate "%"))]
+                                                           " for a win rate of " win-rate "%"
+                                                           (format-rating rating)))]
     (cond (map? stats) (println (format-stats stats))
           (map? (-> stats first second)) (doseq [[id s] stats] (println (str "For " (str id) ", " (format-stats s))))
           :else (assert "Unknown datatype for stats:" (type stats)))))
 
 (defn show-all-stats [games]
-  (if (seq games)
-    (do (println "Summary details:")
-        (print-stats (g/game-stats games))
-        (println)
-        (println "Stats by adversary:")
-        (print-stats (g/stats-by-adversary games)))
-    (println "No matching games found")))
+  (letfn [(find-and-print [title lookup-fn]
+            (println title)
+            (print-stats (lookup-fn games))
+            (println))]
+    (if (seq games)
+      (do (find-and-print "Summary details:" g/game-stats)
+          (find-and-print "Stats by adversary:" g/stats-by-adversary)
+          (find-and-print "Stats by spirit:" g/stats-by-spirit))
+      (println "No matching games found"))))
 
 (defmethod execute "stats" [state input]
   (let [games (filtered-games state input)]
