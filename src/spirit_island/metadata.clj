@@ -1,7 +1,7 @@
 (ns spirit_island.metadata
   (:require [clojure.edn :as edn]
             [clojure.spec.alpha :as s]
-            [spirit_island.core :refer [in?]]
+            [spirit_island.core :refer [in? map-from-aliases]]
             [integrant.core :as ig]))
 
 (s/def :shared/name string?)
@@ -44,10 +44,10 @@
   (parse-metadata filename))
 
 (defn difficulty-for-string [s]
-  ({"low"       :low, "easy" :low,
-    "moderate"  :moderate, "medium" :moderate
-    "high"      :high, "hard" :high
-    "very-high" :very-high, "vhigh" :very-high, "very-hard" :very-high, "vhard" :very-high} s))
+  (get (map-from-aliases {:low       ["low" "easy"]
+                          :moderate  ["moderate" "medium"]
+                          :high      ["high" "hard"]
+                          :very-high ["very-high" "veryhigh" "vhigh" "very-hard" "veryhard" "vhard"]}) s))
 
 (defn adversary? [metadata s]
   (contains? (set (adversary-names metadata)) (keyword s)))

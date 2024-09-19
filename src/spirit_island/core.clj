@@ -21,8 +21,8 @@
   (reduce-kv #(assoc %1 %2 (f %3)) {} m))
 
 (defn in? [coll v] (some (partial = v) coll))
-(defn first-when [f coll] (->> coll (filter f) first))
-(defn count-when [f coll] (->> coll (filter f) count))
+(defn first-when [f coll] (first (filter f coll)))
+(defn count-when [f coll] (count (filter f coll)))
 (defn first-some? [coll] (first-when some? coll))
 
 (defn say
@@ -45,3 +45,12 @@
   "Returns the average of a collection of numbers, or `nil` if the collection is `nil` or empty."
   (when (seq nums)
     (/ (apply + nums) (count nums))))
+
+(defn map-from-aliases
+  "Converts a map of {k [coll]} to a map from each member of each collection to its key.
+  So {:andrew [\"Andy\" \"Andrew\"], :bob [\"Robert\" \"Bob\"]} becomes
+  {\"Andy\" :andrew, \"Andrew\" :andrew, \"Robert\" :bob, \"Bob\" :bob}."
+  [input-map]
+  (reduce-kv #(merge %1 (zipmap %3 (repeat %2)))
+             {}
+             input-map))
