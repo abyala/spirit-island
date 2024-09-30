@@ -39,12 +39,12 @@
              "-1")))
 
 (deftest parse-long-within-range-test
-  (are [expected s low high] (= expected (c/parse-long-within-range s low high))
-                             5 "5" 5 5
-                             5 "5" 0 5
-                             5 "5" 5 8
-                             0 "0" -100 100
-                             -5 "-5" -10 0)
+  (are [s low high expected] (= (c/parse-long-within-range s low high) expected)
+                             "5" 5 5 5
+                             "5" 0 5 5
+                             "5" 5 8 5
+                             "0" -100 100 0
+                             "-5" -10 0 -5)
   (are [s low high] (nil? (c/parse-long-within-range s low high))
                     nil 0 10
                     "" 0 10
@@ -67,12 +67,12 @@
                 [:a :a :b :b] :c))
 
 (deftest no-nil-vals-test
-  (are [expected m] (= (c/no-nil-vals m) expected)
+  (are [m expected] (= (c/no-nil-vals m) expected)
                     nil nil
                     {} {}
                     {:a 1 :b 2} {:a 1 :b 2}
-                    {:a 1} {:a 1 :b nil}
-                    {} {:a nil :b nil}))
+                    {:a 1 :b nil} {:a 1}
+                    {:a nil :b nil} {}))
 
 (deftest average-test
   (are [n] (nil? (c/average n))
@@ -83,3 +83,11 @@
                     5 [5 5]
                     5 [4 5 6]
                     (/ 16 3) [5 5 6]))
+
+(deftest map-from-aliases-test
+  (are [input expected] (= (c/map-from-aliases input) expected)
+                        {:andrew ["Andy" "Andrew"], :bob ["Robert" "Bob"]}
+                        {"Andy" :andrew, "Andrew" :andrew, "Robert" :bob, "Bob" :bob}
+
+                        {"Numbers" [0 1], :letters (list "a" \b)}
+                        {0 "Numbers", 1 "Numbers", "a" :letters, \b :letters}))

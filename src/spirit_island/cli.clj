@@ -49,8 +49,11 @@
                               (str/join ", " (map (fn [[k v]] (str (str/capitalize (subs (str k) 1))
                                                                    " level " v)) adversaries))))
     (println "Players:")
-    (doseq [[name {spirit :spirit, board :board}] players]
-      (println (str " * " name " is using board \"" (subs (str board) 1) "\" to play \"" spirit "\"")))))
+    (doseq [[name {spirit :spirit, aspect :aspect, board :board}] players]
+      (println (str " * " name
+                    " is using board \"" (subs (str board) 1)
+                    "\" to play \"" spirit "\""
+                    (when aspect (str " with aspect \"" aspect "\"")))))))
 
 (defmethod execute "create-game" [state input]
   (let [players (clip/parse-create-game input)]

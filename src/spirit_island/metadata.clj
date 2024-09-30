@@ -1,7 +1,7 @@
 (ns spirit_island.metadata
   (:require [clojure.edn :as edn]
             [clojure.spec.alpha :as s]
-            [spirit_island.core :refer [in? map-from-aliases]]
+            [spirit_island.core :refer [in? map-from-aliases no-nil-vals]]
             [integrant.core :as ig]))
 
 (s/def :shared/name string?)
@@ -25,6 +25,10 @@
 
 (defn spirit-names [metadata]
   (map :name (vals (:spirits metadata))))
+
+(defn spirits-and-aspects [metadata]
+  (map #(no-nil-vals (hash-map :name (:name %) :aspects (seq (map :name (vals (:aspects %))))))
+       (vals (:spirits metadata))))
 
 (defn adversary-names [metadata]
   (-> metadata :adversaries keys sort))

@@ -2,10 +2,17 @@
   (:require [spirit_island.core :refer [count-when in? map-values rounded-percent average no-nil-vals]]
             [spirit_island.metadata :as m]))
 
+(defn random-aspect [spirit]
+  (let [aspects (:aspects spirit)
+        spirit' {:spirit (:name spirit)}]
+    (if-not aspects
+      spirit'
+      (no-nil-vals (assoc spirit' :aspect (first (shuffle (conj aspects nil))))))))
+
 (defn random-game [metadata players]
   {:adversaries {(first (shuffle (m/adversary-names metadata))) (inc (rand-int 6))}
-   :players     (zipmap players (map #(hash-map :spirit %1 :board %2)
-                                     (shuffle (m/spirit-names metadata))
+   :players     (zipmap players (map (fn [spirit board] (assoc (random-aspect spirit) :board board))
+                                     (shuffle (m/spirits-and-aspects metadata))
                                      (shuffle (m/all-boards metadata))))})
 
 (defn- adversaries-in-game [game] (keys (:adversaries game)))
