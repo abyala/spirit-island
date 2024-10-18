@@ -15,9 +15,9 @@
                                      (shuffle (m/spirits-and-aspects metadata))
                                      (shuffle (m/all-boards metadata))))})
 
-(defn- adversaries-in-game [game] (keys (:adversaries game)))
-(defn- players-in-game [game] (keys (:players game)))
-(defn- spirits-in-game [game] (map (comp :spirit second) (:players game)))
+(defn adversaries-in-game [game] (keys (:adversaries game)))
+(defn players-in-game [game] (keys (:players game)))
+(defn spirits-in-game [game] (map (comp :spirit second) (:players game)))
 
 (defn against-adversary? [game adversary] (in? (adversaries-in-game game) adversary))
 (defn with-player? [game player] (in? (players-in-game game) player))
@@ -48,9 +48,14 @@
        (sort-by win-rate-comparator)))
 
 (defn stats-by-spirit
-  ([games] (->> games
-                (mapcat (fn [g] (map #(merge {:outcome (:outcome g)} %) ((comp vals :players) g))))
-                (group-by :spirit)
-                (reduce-kv (fn [acc spirit games] (assoc acc spirit (game-stats games))) {})
-                (sort-by (comp :rating second))))
-  ([games player] (stats-by-spirit (map #(update % :players select-keys [player]) games))))
+  ([metadata games] (stats-by-spirit metadata games false))
+  ([metadata games include-all-spirits?]
+   (let [stats (->> games
+                    (mapcat (fn [g] (map #(merge {:outcome (:outcome g)} %) ((comp vals :players) g))))
+                    (group-by :spirit)
+                    (reduce-kv (fn [acc spirit games] (assoc acc spirit (game-stats games))) {})
+                    (sort-by (comp :rating second)))
+         stats' (if include-all-spirits? (merge (zipmap (m/spirit-ids metadata) (repeat {:num 0 :wins 0 :losses 0}))
+                                                stats)
+                                         stats)]
+     (sort-by (comp :rating second) stats'))))

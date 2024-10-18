@@ -23,6 +23,9 @@
                 (assert (valid? m) (str "Invalid metadata at file " filename))
                 m)))
 
+(defn spirit-ids [metadata]
+  (-> metadata :spirits keys))
+
 (defn spirit-names [metadata]
   (map :name (vals (:spirits metadata))))
 

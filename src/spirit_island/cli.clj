@@ -70,8 +70,8 @@
         game (clip/parse-record-game input)
         error (fn [m] (println m) (invalid-format-message record-game-usage) state)]
     (cond (keyword? game) (error game)
-          (not (every? (partial m/adversary? metadata) (-> game :adversaries keys))) (error :invalid-adversary)
-          (not (every? (partial u/player? users) (-> game :players keys))) (error :invalid-player)
+          (not (every? (partial m/adversary? metadata) (g/adversaries-in-game game))) (error :invalid-adversary)
+          (not (every? (partial u/player? users) (g/players-in-game game))) (error :invalid-player)
           (not (every? (fn [[s a]] (m/spirit? metadata s a))
                        (->> game :players vals (map (juxt :spirit :aspect))))) (error :invalid-spirit)
           (not (every? (partial m/board? metadata) (->> game :players vals (map :board)))) (error :invalid-board)
@@ -113,7 +113,7 @@
           (map? (-> stats first second)) (doseq [[id s] stats] (println (str "For " (str id) ", " (format-stats s))))
           :else (assert "Unknown datatype for stats:" (type stats)))))
 
-(defn show-all-stats [games]
+(defn show-all-stats [metadata games]
   (letfn [(find-and-print [title lookup-fn]
             (println title)
             (print-stats (lookup-fn games))
@@ -121,14 +121,14 @@
     (if (seq games)
       (do (find-and-print "Summary details:" g/game-stats)
           (find-and-print "Stats by adversary:" g/stats-by-adversary)
-          (find-and-print "Stats by spirit:" g/stats-by-spirit))
+          (find-and-print "Stats by spirit:" (partial g/stats-by-spirit metadata)))
       (println "No matching games found"))))
 
 (defmethod execute "stats" [state input]
   (let [games (filtered-games state input)]
     (if (= games :invalid)
       (invalid-format-message stats-usage)
-      (show-all-stats games))))
+      (show-all-stats (state-metadata state) games))))
 
 (defn run-cli
   ([] (run-cli (spirit_island.metadata/parse-metadata) (spirit-island.users/parse-users)))
