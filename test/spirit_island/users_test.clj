@@ -4,22 +4,23 @@
 
 (def test-users {:players (zipmap ["Andrew" "Scotty" "Marc"] (repeat {}))})
 
-(deftest valid?-test
-  (testing "Collection of users"
-    (are [names] (u/player? test-users names)
-                 ["Andrew"]
-                 ["Andrew" "Scotty"]
-                 ["Marc" "Scotty"])
-    (are [names] (not (u/player? test-users names))
-                 []
-                 ["Bob"]
-                 ["Andrew" "Bob"]
-                 ["Bob" "Scotty"]))
+(deftest player?-test
+  (let [service (u/create-service nil test-users)]
+    (testing "Collection of users"
+      (are [names] (u/players? service names)
+                   ["Andrew"]
+                   ["Andrew" "Scotty"]
+                   ["Marc" "Scotty"])
+      (are [names] (not (u/players? service names))
+                   []
+                   ["Bob"]
+                   ["Andrew" "Bob"]
+                   ["Bob" "Scotty"]))
 
-  (testing "Single user"
-    (are [name] (u/player? test-users name)
-                "Andrew"
-                "Scotty")
-    (are [name] (not (u/player? test-users name))
-                nil
-                "Bob")))
+    (testing "Single user"
+      (are [name] (u/player? service name)
+                  "Andrew"
+                  "Scotty")
+      (are [name] (not (u/player? service name))
+                  nil
+                  "Bob"))))

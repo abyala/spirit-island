@@ -11,19 +11,20 @@
                                   :france  {:name "France"}}})
 
 (deftest spirit?-test
-  (testing "No aspects"
-    (are [spirit] (not (m/spirit? test-metadata spirit))
-                  nil
-                  ""
-                  "River Surges in Sunlight"
-                  "rivers")
-    (are [spirit] (m/spirit? test-metadata spirit)
-                  "river"
-                  "fangs"
-                  "many-minds"))
-  (testing "With aspects"
-    (are [spirit aspect] (not (m/spirit? test-metadata spirit aspect))
-                         "river" "encircle"
-                         "fangs" "mew")
-    (are [spirit aspect] (m/spirit? test-metadata spirit aspect)
-                         "fangs" "encircle")))
+  (let [service (m/create-service "" test-metadata)]
+    (testing "No aspects"
+      (are [spirit] (not (m/spirit? service spirit))
+                    nil
+                    ""
+                    "River Surges in Sunlight"
+                    "rivers")
+      (are [spirit] (m/spirit? service spirit)
+                    "river"
+                    "fangs"
+                    "many-minds"))
+    (testing "With aspects"
+      (are [spirit aspect] (not (m/spirit? service spirit aspect))
+                           "river" "encircle"
+                           "fangs" "mew")
+      (are [spirit aspect] (m/spirit? service spirit aspect)
+                           "fangs" "encircle"))))

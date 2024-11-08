@@ -1,7 +1,9 @@
 (ns spirit-island.cli-test
   (:require [clojure.test :refer :all]
             [spirit-island.cli :as cli]
-            [spirit_island.core :as c]))
+            [spirit-island.users :as u]
+            [spirit_island.core :as c]
+            [spirit_island.metadata :as m]))
 
 (def game1 {:timestamp   #inst "2024-05-12T00:30:00.000-00:00",
             :outcome     :win,
@@ -18,16 +20,17 @@
             :num-turns   9,
             :adversaries {:france 2},
             :players     {"Andrew" {:spirit :fangs, :aspect :encircle, :rating 4}}})
-(def test-state {:metadata {:spirits     {:river      {:name "River Surges in Sunlight", :difficulty :low}
-                                          :fangs      {:name "Sharp Fangs Behind the Leaves", :difficulty :moderate
-                                                       :aspects {:encircle {}}}
-                                          :many-minds {:name "Many Minds Move as One", :difficulty :moderate}}
-                            :boards      [:a :b :c :d :e :f],
-                            :adversaries {:england {:name "England"}
-                                          :france  {:name "France"}}}
-                 :users    {:players {"Andrew" {}
-                                      "Marc"   {}}
-                            :games   [game1 game2 game3]}})
+
+(def test-state {:metadata-svc (m/create-service nil {:spirits     {:river      {:name "River Surges in Sunlight", :difficulty :low}
+                                                                    :fangs      {:name    "Sharp Fangs Behind the Leaves", :difficulty :moderate
+                                                                                 :aspects {:encircle {}}}
+                                                                    :many-minds {:name "Many Minds Move as One", :difficulty :moderate}}
+                                                      :boards      [:a :b :c :d :e :f],
+                                                      :adversaries {:england {:name "England"}
+                                                                    :france  {:name "France"}}})
+                 :user-svc     (u/create-service nil {:players {"Andrew" {}
+                                                                "Marc"   {}}
+                                                      :games   [game1 game2 game3]})})
 
 (deftest parse-stat-filters-test
   (are [input] (nil? (cli/parse-stat-filters test-state input))

@@ -1,6 +1,6 @@
 (ns spirit-island.cli-parse
   (:require [clojure.string :as str]
-            [spirit_island.core :refer [first-when no-nil-vals only-when parse-long-within-range]]))
+            [spirit_island.core :refer [first-when only-when parse-long-within-range]]))
 
 (defn parse-create-game [input]
   (let [[_ players-str] (str/split input #" ")]
@@ -13,32 +13,13 @@
   (case input nil :missing-adversary
               "none" {}
               ":none" {}
-              (reduce (fn [acc s] (if-some [[_ adversary level] (re-matches #"(\w+)=(\d+)" s)]
-                                    (if (parse-long-within-range level 0 6)
-                                      (assoc acc (keyword adversary) (parse-long level))
+              (reduce (fn [acc s] (if-some [[_ adversary level-str] (re-matches #"(\w+)=(\d+)" s)]
+                                    (if-some [level (parse-long-within-range level-str 0 6)]
+                                      (assoc acc (keyword adversary) level)
                                       (reduced :invalid-adversary-level))
                                     (reduced :invalid-adversary)))
                       {}
                       (str/split input #";"))))
-
-(defn parse-record-game-players [input]
-  (if input
-    (reduce (fn [acc s]
-              (if-some [[_ player spirit a b c] (first (keep #(re-matches % s)
-                                                             [#"(\w+)=([\w-]+),(\w+),(\d+)"
-                                                              #"(\w+)=([\w-]+),([\w-]+),(\w+),(\d+)"]))]
-                (let [[aspect-str board rating] (if (some? c) [a b c] [nil a b])
-                      aspect (only-when #(not= % "base") aspect-str)]
-                  (if (parse-long-within-range rating 1 5)
-                    (assoc acc player (no-nil-vals {:spirit (keyword spirit)
-                                                    :aspect (keyword aspect)
-                                                    :board  (keyword board)
-                                                    :rating (parse-long rating)}))
-                    (reduced :invalid-player-rating)))
-                (reduced :invalid-player)))
-            {}
-            (str/split input #";"))
-    :missing-players))
 
 (defn parse-record-game-players [input]
   (if (only-when #(not (str/blank? %)) input)
@@ -46,16 +27,16 @@
                               [player spirit] (str/split name-spirit #"=")]
                           (if (<= 2 (count tokens) 3)
                             (let [[aspect board rating-str] (if (= 3 (count tokens)) tokens (concat [nil] tokens))
+                                  aspect (only-when (partial not= "base") aspect)
                                   rating (parse-long-within-range rating-str 1 5)]
                               (cond (nil? player) (reduced :invalid-player)
                                     (nil? spirit) (reduced :invalid-spirit)
                                     (nil? board) (reduced :invalid-board)
                                     (nil? rating) (reduced :invalid-player-rating)
-                                    :else (assoc acc player (no-nil-vals {:spirit (keyword spirit)
-                                                                          :aspect (when (and aspect (not= aspect "base"))
-                                                                                    (keyword aspect))
-                                                                          :board  (keyword board)
-                                                                          :rating rating}))))
+                                    :else (assoc acc player (cond-> {:spirit (keyword spirit)
+                                                                     :board  (keyword board)
+                                                                     :rating rating}
+                                                                    (some? aspect) (assoc :aspect (keyword aspect))))))
                             (reduced :invalid-player))))
             {}
             (str/split input #";"))
