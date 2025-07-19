@@ -1,5 +1,6 @@
 (ns spirit-island.cli
   (:require [clojure.string :as str]
+            [clj-time.format :as fmt]
             [integrant.core :as ig]
             [spirit-island.cli-parse :as clip]
             [spirit_island.core :refer [only-when first-some? say]]
@@ -11,12 +12,13 @@
 (defn- state-user-svc [state] (:user-svc state))
 
 (def ditto "\"")
+(def #^{:private true} filters-usage "(adversary|player(=spirit);... )")
 (def #^{:private true} create-game-usage
   "create-game [Player;...]")
 (def #^{:private true} record-game-usage
   "record-game [win|loss] [num-turns] [none|adversary=level] [Player=spirit,(aspect?,)board,rating;...]")
-(def #^{:private true} stats-usage
-  "stats (adversary|player(=spirit);... )")
+(def #^{:private true} stats-usage (str "stats " filters-usage))
+(def #^{:private true} games-usage (str "games " filters-usage))
 (defn invalid-format-message [message]
   (println "Invalid format:" message))
 
@@ -28,7 +30,7 @@
 
 (defmethod execute :default [_ _]
   (println "Unrecognized command. Use one of the following:")
-  (println (str/join "\n" (map #(str " * " %) ["spirits" "users" create-game-usage record-game-usage stats-usage]))))
+  (println (str/join "\n" (map #(str " * " %) ["spirits" "users" create-game-usage record-game-usage stats-usage games-usage]))))
 
 (defmethod execute nil [_ _])
 (defmethod execute "exit" [_ _] :exit)
@@ -42,7 +44,7 @@
   (doseq [spirit (sort (m/spirit-names (state-metadata-svc state)))]
     (println spirit)))
 
-(defn print-game [game]
+(defn print-game-setup [game]
   (let [{:keys [adversaries players]} game]
     (println "Adversaries:" (if (empty? adversaries)
                               "None"
@@ -61,7 +63,7 @@
       (invalid-format-message create-game-usage)
       (if (not (u/players? (state-user-svc state) players))
         (println "Invalid players")
-        (do (print-game (g/random-game (state-metadata-svc state) players))
+        (do (print-game-setup (g/random-game (state-metadata-svc state) players))
             :preserve-request)))))
 
 (defmethod execute "record-game" [state input]
@@ -75,15 +77,16 @@
                        (->> game :players vals (map (juxt :spirit :aspect))))) (error :invalid-spirit)
           (not (every? (partial m/board? metadata-svc) (->> game :players vals (map :board)))) (error :invalid-board)
           :else (let [{:keys [win? turns adversaries players]} game]
-                  (u/add-game (state-user-svc state) win? turns adversaries players)
+                  (u/add-game user-svc win? turns adversaries players)
                   (println "Recorded and saved")))))
 
 (defn parse-stat-filters [state input]
   (if (<= (count input) 6)
     ()
     (let [[metadata-svc user-svc] ((juxt state-metadata-svc state-user-svc) state)]
-      (letfn [(parsed-adversary [s] (when (m/adversary? metadata-svc s)
-                                      #(g/against-adversary? % (keyword s))))
+      (letfn [(parsed-adversary [s]
+                (when (m/adversary? metadata-svc s)
+                  #(g/against-adversary? % (keyword s))))
               (parsed-user [s] (when (u/player? user-svc s)
                                  #(g/with-player? % s)))
               (parsed-user-spirit [s] (when-some [[_ player spirit] (re-matches #"(\w+)=([\w-]+)" s)]
@@ -126,6 +129,28 @@
     (if (= games :invalid)
       (invalid-format-message stats-usage)
       (show-all-stats (state-metadata-svc state) games))))
+
+(defn print-game-results [metadata-svc games]
+  (doseq [game games]
+    ; TODO: The date is wrong
+    (println (str (fmt/unparse (fmt/formatters :date) (fmt/parse (:timestamp game)))
+                  ": "
+                  ({:win "Victory" :loss "Defeat"} (:outcome game))
+                  (when-let [a (:adversaries game)]
+                    (str " against " (str/join ", " (map (fn [[n l]] (str (m/adversary-name-by-id metadata-svc n) " level " l))
+                                                         a))))
+                  "\n"
+                  (str/join "\n" (map (fn [[p {:keys [spirit aspect board rating]}]]
+                                        (str "\t" p " playing " (m/spirit-name-by-id metadata-svc spirit)
+                                             (when aspect (str " and aspect " (m/aspect-name-by-id metadata-svc spirit aspect)))
+                                             (when board (str " on board " (name board)))))
+                                      (sort-by first (:players game))))))))
+
+(defmethod execute "games" [state input]
+  (let [games (filtered-games state input)]
+    (if (= games :invalid)
+      (invalid-format-message games-usage)
+      (print-game-results (state-metadata-svc state) games))))
 
 ; TODO: Consider making the CLI itself follow a protocol? Maybe?
 

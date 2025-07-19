@@ -35,8 +35,11 @@
   (spirit-ids [svc] "Returns the IDs for all known spirits")
   (spirit-names [svc] "Returns the names for all known spirits")
   (spirits-and-aspects [svc])
+  (spirit-name-by-id [svc id])
+  (aspect-name-by-id [svc spirit-id aspect-id])
   (adversary? [svc s])
   (adversary-names [svc])
+  (adversary-name-by-id [svc id])
   (all-boards [svc])
   (by-id [svc name])
   (spirits-of-difficulty [svc difficulty])
@@ -56,10 +59,19 @@
                                                       (seq aspects) (assoc :aspects (map :name (vals aspects)))))]
       (map extract (vals (:spirits metadata)))))
 
+  (spirit-name-by-id [_ id]
+    (get-in metadata [:spirits id :name]))
+
+  (aspect-name-by-id [_ spirit-id aspect-id]
+    (get-in metadata [:spirits spirit-id :aspects aspect-id :name]))
+
   (adversary-names [_] (-> metadata :adversaries keys sort))
 
   (adversary? [this s]
     (contains? (set (adversary-names this)) (keyword s)))
+
+  (adversary-name-by-id [_ id]
+    (get-in metadata [:adversaries id :name]))
 
   (all-boards [_] (:boards metadata))
 
