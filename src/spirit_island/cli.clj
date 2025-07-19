@@ -1,5 +1,6 @@
 (ns spirit-island.cli
   (:require [clojure.string :as str]
+            [clj-time.coerce :as coer]
             [clj-time.format :as fmt]
             [integrant.core :as ig]
             [spirit-island.cli-parse :as clip]
@@ -130,17 +131,19 @@
       (invalid-format-message stats-usage)
       (show-all-stats (state-metadata-svc state) games))))
 
+(defn date-as-string [d]
+  (fmt/unparse (fmt/formatter "yyyy-MM-dd") (coer/from-date d)))
+
 (defn print-game-results [metadata-svc games]
   (doseq [game games]
-    ; TODO: The date is wrong
-    (println (str (fmt/unparse (fmt/formatters :date) (fmt/parse (:timestamp game)))
+    (println (str (date-as-string (:timestamp game))
                   ": "
                   ({:win "Victory" :loss "Defeat"} (:outcome game))
                   (when-let [a (:adversaries game)]
                     (str " against " (str/join ", " (map (fn [[n l]] (str (m/adversary-name-by-id metadata-svc n) " level " l))
                                                          a))))
                   "\n"
-                  (str/join "\n" (map (fn [[p {:keys [spirit aspect board rating]}]]
+                  (str/join "\n" (map (fn [[p {:keys [spirit aspect board]}]]
                                         (str "\t" p " playing " (m/spirit-name-by-id metadata-svc spirit)
                                              (when aspect (str " and aspect " (m/aspect-name-by-id metadata-svc spirit aspect)))
                                              (when board (str " on board " (name board)))))
