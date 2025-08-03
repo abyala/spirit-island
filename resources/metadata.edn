@@ -21,7 +21,7 @@
                                            :reach      {:name "Reach"}}}
                :thunderspeaker  {:name    "Thunderspeaker", :difficulty :moderate
                                  :aspects {:tactician {:name "Tactician"}
-                                           :warrioer  {:name "Warrior"}}}
+                                           :warrior  {:name "Warrior"}}}
                :green           {:name    "A Spread of Rampant Green", :difficulty :moderate
                                  :aspects {:regrowth {:name "Regrowth"}
                                            :tangles  {:name "Tangles"}}}

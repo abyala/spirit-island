@@ -139,13 +139,15 @@
     (println (str (date-as-string (:timestamp game))
                   ": "
                   ({:win "Victory" :loss "Defeat"} (:outcome game))
-                  (when-let [a (:adversaries game)]
+                  " after " (:num-turns game) " turns"
+                  (if-let [a (seq (:adversaries game))]
                     (str " against " (str/join ", " (map (fn [[n l]] (str (m/adversary-name-by-id metadata-svc n) " level " l))
-                                                         a))))
+                                                         a)))
+                    " with no adversaries")
                   "\n"
                   (str/join "\n" (map (fn [[p {:keys [spirit aspect board]}]]
-                                        (str "\t" p " playing " (m/spirit-name-by-id metadata-svc spirit)
-                                             (when aspect (str " and aspect " (m/aspect-name-by-id metadata-svc spirit aspect)))
+                                        (str "\t" p " playing \"" (m/spirit-name-by-id metadata-svc spirit) "\""
+                                             (when aspect (str " and aspect \"" (m/aspect-name-by-id metadata-svc spirit aspect) "\""))
                                              (when board (str " on board " (name board)))))
                                       (sort-by first (:players game))))))))
 
