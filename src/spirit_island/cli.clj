@@ -52,9 +52,9 @@
                               (str/join ", " (map (fn [[k v]] (str (str/capitalize (subs (str k) 1))
                                                                    " level " v)) adversaries))))
     (println "Players:")
-    (doseq [[name {spirit :spirit, aspect :aspect, board :board}] players]
-      (println (str " * " name
-                    " is using board \"" (subs (str board) 1)
+    (doseq [[player {spirit :spirit, aspect :aspect, board :board}] players]
+      (println (str " * " player
+                    " is using board \"" (name board)
                     "\" to play \"" spirit "\""
                     (when aspect (str " with aspect \"" aspect "\"")))))))
 
