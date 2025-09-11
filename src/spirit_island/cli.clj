@@ -4,7 +4,7 @@
             [clj-time.format :as fmt]
             [integrant.core :as ig]
             [spirit-island.cli-parse :as clip]
-            [spirit_island.core :refer [only-when first-some? say]]
+            [spirit_island.core :refer [only-when first-some? say closest-fuzzy-match cond-bound first-when]]
             [spirit-island.game :as g]
             [spirit_island.metadata :as m]
             [spirit-island.users :as u]))
@@ -67,19 +67,43 @@
         (do (print-game-setup (g/random-game (state-metadata-svc state) players))
             :preserve-request)))))
 
+(defn suggest-spirit [state spirit aspect]
+  (let [ms (state-metadata-svc state)]
+    (cond (not (m/spirit? ms spirit)) ["spirit" spirit aspect (closest-fuzzy-match (name spirit) (map name (m/spirit-ids ms)))]
+          (not (m/spirit? ms spirit aspect)) ["aspect" spirit aspect (closest-fuzzy-match (name aspect) (map name (m/aspect-ids ms spirit)))])))
+
 (defmethod execute "record-game" [state input]
   (let [[metadata-svc user-svc] ((juxt state-metadata-svc state-user-svc) state)
         game (clip/parse-record-game input)
         error (fn [m] (println m) (invalid-format-message record-game-usage) state)]
-    (cond (keyword? game) (error game)
-          (not (every? (partial m/adversary? metadata-svc) (g/adversaries-in-game game))) (error :invalid-adversary)
-          (not (every? (partial u/player? user-svc) (g/players-in-game game))) (error :invalid-player) ; Don't need every?
-          (not (every? (fn [[s a]] (m/spirit? metadata-svc s a))
-                       (->> game :players vals (map (juxt :spirit :aspect))))) (error :invalid-spirit)
-          (not (every? (partial m/board? metadata-svc) (->> game :players vals (map :board)))) (error :invalid-board)
-          :else (let [{:keys [win? turns adversaries players]} game]
-                  (u/add-game user-svc win? turns adversaries players)
-                  (println "Recorded and saved")))))
+    (cond-bound
+      ; Parser error
+      (keyword? game)
+      (fn [_] (error (str "Cannot parse game")))
+
+      ; Incorrect adversary
+      (first-when (comp not (partial m/adversary? metadata-svc)) (g/adversaries-in-game game))
+      #(error (str "Invalid adversary \"" (name %) "\". Did you mean \""
+                   (closest-fuzzy-match (name %) (map name (m/adversary-names metadata-svc))) "\"?"))
+
+      ; Incorrect player
+      (first-when (comp not (partial u/player? user-svc)) (g/players-in-game game))
+      #(error (str "Invalid player \"" % "\". Did you mean \""
+                   (closest-fuzzy-match % (u/all-users user-svc)) "\"?"))
+
+      ; Incorrect spirit or aspect
+      (first-some? (map (fn [[s a]] (suggest-spirit state s a)) (g/spirits-and-aspects-in-game game)))
+      (fn [[t s a sugg]] (error (str "Invalid " t " for spirit \"" (name s) "\"" (when a (str " and aspect \"" (name a) "\""))
+                                     ". Did you mean \"" sugg "\"?")))
+
+      ; Incorrect board
+      (first-when (comp not (partial m/board? metadata-svc)) (g/boards-in-game game))
+      #(error (str "Invalid board \"" (name %) "\". Values range from \"a\" to \"f\"."))
+
+      :else
+      (let [{:keys [win? turns adversaries players]} game]
+        (u/add-game user-svc win? turns adversaries players)
+        (println "Recorded and saved")))))
 
 (defn parse-stat-filters [state input]
   (if (<= (count input) 6)

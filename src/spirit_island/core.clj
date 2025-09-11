@@ -1,4 +1,5 @@
-(ns spirit_island.core)
+(ns spirit_island.core
+  (:require [clj-fuzzy.metrics :as metrics]))
 
 (defn only-when
   "Returns v if (f v) is truthy, or else returns nil."
@@ -54,3 +55,22 @@
   (reduce-kv #(merge %1 (zipmap %3 (repeat %2)))
              {}
              input-map))
+
+(defn closest-fuzzy-match
+  "Given an input string and a collection of values, returns the value whose name has the greatest string similarity to
+  the input string."
+  [s coll]
+  (->> coll
+       (map (fn [v] [v (metrics/levenshtein s (name v))]))
+       (apply min-key second)
+       first))
+
+(defmacro cond-bound [& clauses]
+  (let [[test then & others] clauses]
+    (cond
+      (odd? (count clauses)) (throw (IllegalArgumentException. "cond-bound requires an even number of forms"))
+      (= test :else) then
+      :else `(let [result# ~test]
+               (if result#
+                 (~then result#)
+                 (cond-bound ~@others))))))

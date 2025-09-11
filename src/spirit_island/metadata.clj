@@ -36,6 +36,7 @@
   (spirit-names [svc] "Returns the names for all known spirits")
   (spirits-and-aspects [svc])
   (spirit-name-by-id [svc id])
+  (aspect-ids [svc spirit-id])
   (aspect-name-by-id [svc spirit-id aspect-id])
   (adversary? [svc s])
   (adversary-names [svc])
@@ -61,6 +62,8 @@
 
   (spirit-name-by-id [_ id]
     (get-in metadata [:spirits id :name]))
+
+  (aspect-ids [_ spirit-id] (-> metadata :spirits spirit-id :aspects keys))
 
   (aspect-name-by-id [_ spirit-id aspect-id]
     (get-in metadata [:spirits spirit-id :aspects aspect-id :name]))

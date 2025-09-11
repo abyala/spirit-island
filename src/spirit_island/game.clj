@@ -16,6 +16,8 @@
 (defn adversaries-in-game [game] (keys (:adversaries game)))
 (defn players-in-game [game] (keys (:players game)))
 (defn spirits-in-game [game] (map (comp :spirit second) (:players game)))
+(defn spirits-and-aspects-in-game [game] (->> game :players vals (map (juxt :spirit :aspect))))
+(defn boards-in-game [game] (->> game :players vals (map :board)))
 
 (defn against-adversary? [game adversary] (in? (adversaries-in-game game) adversary))
 (defn with-player? [game player] (in? (players-in-game game) player))
