@@ -59,11 +59,13 @@
                     (when aspect (str " with aspect \"" aspect "\"")))))))
 
 (defmethod execute "create-game" [state input]
-  (let [players (clip/parse-create-game input)]
+  (let [user-svc (state-user-svc state)
+        players (clip/parse-create-game input)]
     (if (= players :invalid)
       (invalid-format-message create-game-usage)
-      (if (not (u/players? (state-user-svc state) players))
-        (println "Invalid players")
+      (if-some [invalid-player (first-when (comp not (partial u/player? user-svc)) players)]
+        (println (str "Invalid player \"" invalid-player "\". Did you mean \""
+                      (closest-fuzzy-match invalid-player (u/all-users user-svc)) "\"?"))
         (do (print-game-setup (g/random-game (state-metadata-svc state) players))
             :preserve-request)))))
 
