@@ -77,7 +77,15 @@
                :gaze            {:name "Relentless Gaze of the Sun", :difficulty :high}
                :wandering-voice {:name "Wandering Voice Keens Delirium", :difficulty :high}
                :wounded-waters  {:name "Wounded Waters Bleeding", :difficulty :high}
-               :dances          {:name "Dances Up Earthquakes", :difficulty :very-high}},
+               :dances          {:name "Dances Up Earthquakes", :difficulty :very-high}
+               
+               ; Custom Spirits
+               :simplicity      {:name "Simplicity Deals with Things Directly", :difficulty :low}
+               :shimmering      {:name "Shimmering Traces of Madness", :difficulty :moderate}
+               :tendrils        {:name "Tendrils of Hatred Seize Control", :difficulty :high}
+               :dank-weed       {:name "Dank Weed Breeds Sloth", :difficulty :moderate}
+               :fade            {:name "Fade to Dust and Whispers", :difficulty :low}
+               :gathering       {:name "Gathering of the Smallest Things", :difficulty :moderate}},
  :boards      [:a :b :c :d :e :f],
  :adversaries {:brandenburg {:name "Brandenburg-Prussia"}
                :england     {:name "England"}

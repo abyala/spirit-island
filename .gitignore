@@ -14,4 +14,4 @@ pom.xml.asc
 .cpcache/
 /spirit-island.iml
 /.idea/
-/resources/
+/resources/users.edn
